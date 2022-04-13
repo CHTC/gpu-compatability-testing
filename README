@@ -81,3 +81,5 @@ Submitted everything to test ~720 combinations
 Finished including regex in program
 Added CLI arguments to choose how far back we test each of the version lists
 Cleaned code up a bit
+Added check to make sure we aren't looking at any TF 1.x versions
+

@@ -16,21 +16,20 @@ with open("SUBMITS.txt", "r") as f:
     submits = list(f.readlines())
     #print(submits)
 
-
 for i in submits:
     check_tag = 0
-    job_tag = i[7:-5]
-    print(job_tag,"job tag\n")
+    job_tag = i[7:-5] #Pulling from SUBMITS.txt
+    #print(job_tag,"job tag\n")
     out_name = '_out_'+job_tag+'.out'
     err_name = '_err_'+job_tag+'.err'
 
-    print(out_name,"output name")
+    #print(out_name,"output name")
 
     if os.path.exists(out_name):
-        print("exists")
+        #print("exists")
         with open(out_name, 'r') as f:
             last_line = f.readlines()[-1]
-            print(last_line)
+            #print(last_line)
             if "success" in last_line:
                 check_tag+=1
             f.close()
@@ -39,9 +38,12 @@ for i in submits:
     if check_tag:
         valid_combos.append(job_tag)
 
+#print(valid_combos)
+
+
 with open("valid_combos.csv", 'w') as f:
-    f.write("Compute Capability -- Cuda Library -- Framework Version \n")
+    f.write("Framework,Compute Capability,Cuda Library,Framework Version \n")
     for combo in valid_combos:
-        combo.replace("_", " ")
+        combo = combo.replace("_", ",")
         f.write(combo+'\n')
     f.close()

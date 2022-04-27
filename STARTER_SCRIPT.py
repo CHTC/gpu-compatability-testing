@@ -82,7 +82,7 @@ cuda_dev = os.environ['CUDA_VISIBLE_DEVICES']
 if num_GPUs>0 and len(cuda_dev)>0:
     print("success")
 else:
-    print("fail")"""
+    print("gpu_issue")"""
 
             script_name = "script_{}.py".format(job_tag)
             with open(script_name, 'w') as f:
@@ -188,7 +188,7 @@ current_dev_name = torch.cuda.get_device_name(current_device)
 if cuda_available and num_GPUs>0 and len(current_dev_name)>0:
     print("success")
 else:
-    print("fail")"""
+    print("gpu_issue")"""
 
             script_name = "script_{}.py".format(job_tag) ##Here I'm using the fact that the pt_versions and tf_versions don't overlap
             with open(script_name, 'w') as f:

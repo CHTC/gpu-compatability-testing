@@ -13,17 +13,9 @@ when_to_transfer_output = ON_EXIT
 transfer_input_files = 
 
 
-#requirements = (Target.CUDADriverVersion >= 10.1)
-
 request_cpus = 1
-#request_gpus = 1
-request_memory = 2GB
+request_memory = 4GB
 request_disk = 4GB
-
-# Use +Is_Resumable to indicate you want backfill
-#+Is_Resumable = true
-#+WantGPULab = true
-#+GPUJobLength = "short"
 
 queue 1
 (base) [jhiemstra@submit-1 Backfill_testing]$ 

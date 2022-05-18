@@ -53,7 +53,7 @@ with open("valid_combos.csv", 'w') as f:
     f.close()
 
 with open("invalid_combos.csv", 'w') as f:
-    f.write("Framework, Compute Capability, Cuda Library, Framework Version \n")
+    f.write("Framework, Compute Capability, Cuda Library, Framework Version, Failure Cause \n")
     for combo in invalid_combos:
         combo = combo.replace("_", ",")
         f.write(combo+'\n')

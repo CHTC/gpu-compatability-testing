@@ -8,12 +8,19 @@ import os
 from os.path import exists
 import sys
 
+if sys.argv[4].lower() in ['true']:
+    cleanup=1
+else:
+    cleanup=0
+if cleanup:
+        cleanup_files = []
+
 tf_params = subprocess.run("conda search tensorflow-gpu -c conda-forge | grep -E -o ' [0-9]+.[0-9]+.[0-9]+ ' | cut -d. -f 1-2 | awk '{$1=$1;print}' | uniq", check=True, capture_output=True,shell=True)
 tf_params = list(tf_params.stdout.decode('utf-8').splitlines())
 tf_params = tf_params[-1*int(float(sys.argv[1])):]
 tf_params = list(filter(lambda i: i[:1] != "1", tf_params))
  
-print(tf_params)
+#print(tf_params)
 
 pt_params = subprocess.run("conda search pytorch -c pytorch | grep -E -o ' [0-9]+.[0-9]+.[0-9]+ ' | cut -d. -f 1-2 | awk '{$1=$1;print}' | uniq", check=True, capture_output=True,shell=True)
 pt_params = list(pt_params.stdout.decode('utf-8').splitlines())
@@ -73,7 +80,10 @@ dependencies:
             with open(env_name, 'w') as f:
                 f.write(env_yml)
                 f.close()
-            
+            if cleanup:
+                cleanup_files.append(env_name)
+
+
             test_script = """import tensorflow as tf
 import os
 
@@ -88,7 +98,10 @@ else:
             with open(script_name, 'w') as f:
                 f.write(test_script)
                 f.close()
-                
+            if cleanup:
+                cleanup_files.append(script_name)
+
+
             run_file = """#!/bin/bash
 set -e
 
@@ -111,7 +124,8 @@ python3 {}
             with open(run_name,'w') as f:
                 f.write(run_file)
                 f.close()
-                
+            if cleanup:
+                cleanup_files.append(run_name)
                 
             submit_file = """universe = vanilla
 
@@ -143,7 +157,8 @@ queue 1""".format(job_tag,run_name,job_tag,job_tag,"Miniconda3-latest-Linux-x86_
             with open(submit_name, 'w') as f:
                 f.write(submit_file)
                 f.close()
-
+            if cleanup:
+                cleanup_files.append(submit_name)
             submits.append(submit_name)
 
 
@@ -178,7 +193,10 @@ dependencies:
             with open(env_name, 'w') as f:
                 f.write(env_yml)
                 f.close()
-            
+            if cleanup:
+                cleanup_files.append(env_name)
+
+
             test_script = """import torch
 cuda_available = torch.cuda.is_available()
 num_GPUs = torch.cuda.device_count()
@@ -194,7 +212,10 @@ else:
             with open(script_name, 'w') as f:
                 f.write(test_script)
                 f.close()
-                
+            if cleanup:
+                cleanup_files.append(script_name)    
+
+
             run_file = """#!/bin/bash
 set -e
 
@@ -217,7 +238,8 @@ python3 {}
             with open(run_name,'w') as f:
                 f.write(run_file)
                 f.close()
-                
+            if cleanup:
+                cleanup_files.append(run_name)    
                 
             submit_file = """universe = vanilla
 
@@ -249,11 +271,27 @@ queue 1""".format(job_tag,run_name,job_tag,job_tag,"Miniconda3-latest-Linux-x86_
             with open(submit_name, 'w') as f:
                 f.write(submit_file)
                 f.close()
+            if cleanup:
+                cleanup_files.append(submit_name)
 
             submits.append(submit_name)
 
 
-            
+if cleanup:
+    cleanup_files.append('A.dag*')
+    cleanup_files.append('MY_DAG.*')
+    cleanup_files.append('_*')
+    cleanup_files.append('SUBMITS.txt')
+    cleanup_files.append("cleanup.txt")
+
+
+
+if cleanup:
+    with open('cleanup.txt','w') as myfile:
+        for i in cleanup_files:
+            myfile.write(i+'\n')
+        myfile.close()
+        
 with open("A.dag","w") as myfile:
     for i,n in enumerate(submits):
         myfile.write("JOB "+str(i)+" "+str(n)+"\n")

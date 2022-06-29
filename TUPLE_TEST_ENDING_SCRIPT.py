@@ -9,17 +9,15 @@ import os
 from os.path import exists
 
 ## next, we get the output file names and check the last line for success
-valid_combos = []
-invalid_combos = []
 
-submits = []
-with open("SUBMITS.txt", "r") as f:
-    submits = list(f.readlines())
+
+with open("tuple_test.txt", "r") as f:
+    submit = f.readlines()
     #print(submits)
 
-for i in submits:
+for i in submit:
     check_tag = 0
-    job_tag = i[7:-5] #Pulling from SUBMITS.txt
+    job_tag = i[7:-4] #Pulling from SUBMITS.txt
     #print(job_tag,"job tag\n")
     out_name = '_out_'+job_tag+'.out'
     err_name = '_err_'+job_tag+'.err'
@@ -40,27 +38,15 @@ for i in submits:
                 failure = "GPU/Framework Comm Failure"
        
     if check_tag:
-        valid_combos.append(job_tag)
+        with open("test_results.txt", 'w') as f:
+            f.write("Test succeeded")
+            f.close
     else:
-        invalid_combos.append((job_tag+"_"+failure))
-
-
-with open("valid_combos.csv", 'w') as f:
-    f.write("Framework, Compute Capability, Cuda Library, Framework Version \n")
-    for combo in valid_combos:
-        combo = combo.replace("_", ",")
-        f.write(combo+'\n')
-    f.close()
-
-with open("invalid_combos.csv", 'w') as f:
-    f.write("Framework, Compute Capability, Cuda Library, Framework Version, Failure Cause \n")
-    for combo in invalid_combos:
-        combo = combo.replace("_", ",")
-        f.write(combo+'\n')
-    f.close()
-if os.path.isfile('cleanup.txt'):
-
-    with open('cleanup.txt','r') as f:
+        with open("test_results.txt",'w') as f:
+            f.write("Test failed: "+failure)
+            f.close()
+if os.path.isfile('cleanup_tuple.txt'):
+    with open('cleanup_tuple.txt','r') as f:
         for i in f:
             command = 'rm -f '+i[0:-1]
             subprocess.run(command, shell=True)

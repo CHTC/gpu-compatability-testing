@@ -8,25 +8,25 @@ There are two tools: one that tests some portion of the entire version compatibi
 
 To test a single tuple of versions, run on the submit node:
 
-```python wrapper.py -c -t [framework] [framework version] [compute capability] [CUDA library version]```
+```python3 wrapper.py -c -t [framework] [framework version] [compute capability] [CUDA library version]```
 
 where the ```-c``` flag specifies that the wrapper script should clean up files as they are no longer needed (recommended) and the ```-t``` flag specifies that the test is to be run against a single tuple. The framework argument takes either ```tf``` or ```pt```, and the version arguments take the corresponding versions to test. Upon completion, the results of the test will be output in a file called ```test_results.txt```.
 
 For example, to test TensorFlow 2.6 against Compute Capability 7.5 with Cuda Library Version 11.2, you would run:
 
-```python wrapper.py -c -t tf 2.6 7.5 11.2```
+```python3 wrapper.py -c -t tf 2.6 7.5 11.2```
 
 ## Version Space Test
 
 To test some subspace of the entire version space, run on the submit node:
 
-```python wrapper.py -c -ws [# of most recent TensorFlow versions] [# of most recent PyTorch versions] [# of most recent CUDA library versions]```
+```python3 wrapper.py -c -ws [# of most recent TensorFlow versions] [# of most recent PyTorch versions] [# of most recent CUDA library versions]```
 
 where the ```-c``` flag specifies that the wrapper script should clean up files as they are no longer needed (recommended) and the ```-ws``` flag specifies that the test is to run against the version space as opposed to a single tuple. Upon completion, valid combos will be stored in a file called ```valid_combos.csv``` and invalid combos will be stored in a file called ```invalid_combos.csv```.
 
 For example, to run a version space test that tests the 6 most recent versions of TensorFlow, the 3 most recent versions of PyTorch and 8 of the most recent CUDA library versions, you would run:
 
-```python wrapper.py -c -ws 6 3 8```
+```python3 wrapper.py -c -ws 6 3 8```
 
 
 

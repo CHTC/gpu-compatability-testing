@@ -24,6 +24,8 @@ To test some subspace of the entire version space, run on the submit node:
 
 where the ```-c``` flag specifies that the wrapper script should clean up files as they are no longer needed (recommended) and the ```-ws``` flag specifies that the test is to run against the version space as opposed to a single tuple. Upon completion, valid combos will be stored in a file called ```valid_combos.csv``` and invalid combos will be stored in a file called ```invalid_combos.csv```.
 
+Compute capabilities are not passed to the wrapper, because the version space test will run against all available compute capabilities available on the system.
+
 For example, to run a version space test that tests the 6 most recent versions of TensorFlow, the 3 most recent versions of PyTorch and 8 of the most recent CUDA library versions, you would run:
 
 ```python3 wrapper.py -c -ws 6 3 8```

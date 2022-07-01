@@ -8,6 +8,11 @@ import os
 from os.path import exists
 import sys
 
+
+##########################
+#Set up CL arguments
+##########################
+
 if sys.argv[4].lower() in ['true']:
     cleanup=1
 else:
@@ -20,17 +25,13 @@ tf_params = list(tf_params.stdout.decode('utf-8').splitlines())
 tf_params = tf_params[-1*int(float(sys.argv[1])):]
 tf_params = list(filter(lambda i: i[:1] != "1", tf_params))
  
-#print(tf_params)
-
 pt_params = subprocess.run("conda search pytorch -c pytorch | grep -E -o ' [0-9]+.[0-9]+.[0-9]+ ' | cut -d. -f 1-2 | awk '{$1=$1;print}' | uniq", check=True, capture_output=True,shell=True)
 pt_params = list(pt_params.stdout.decode('utf-8').splitlines())
 pt_params = pt_params[-1*int(float(sys.argv[2])):]
-#print(pt_params)
 
 cuda_lib_params = subprocess.run("conda search cudatoolkit -c conda-forge | grep -E -o ' [0-9]+.[0-9]+.[0-9]+ ' | cut -d. -f 1-2 | awk '{$1=$1;print}' | uniq", check=True, capture_output=True,shell=True)
 cuda_lib_params = list(cuda_lib_params.stdout.decode('utf-8').splitlines())
 cuda_lib_params = cuda_lib_params[-1*int(float(sys.argv[3])):]
-#print(cuda_lib_params)
 
 ## Get valid system values for compute capability
 
@@ -49,13 +50,11 @@ for i in bad_inds:
 compute_capability_params.sort() ## Sorted list of available compute capabilities
 
                         
-#print(compute_capability_params) ## Verify values
+submits = [] #Create list to start tracking all the jobs to be submitted
 
-
-submits = []
-
-
-##Tensorflow tests
+##########################
+#Tensorflow tests
+##########################
 for compute_capability in compute_capability_params:
     for cuda_lib_version in cuda_lib_params:
         #tf_version = "2.6"
@@ -68,7 +67,7 @@ for compute_capability in compute_capability_params:
             else:
                 cuda_lib_range = trial[1][0:-1]+"0"
                 
-                
+            #Set up environment .yml for TF    
             env_yml = """channels:
 - conda-forge
 - defaults
@@ -83,7 +82,7 @@ dependencies:
             if cleanup:
                 cleanup_files.append(env_name)
 
-
+            #Set up test script for TF jobs
             test_script = """import tensorflow as tf
 import os
 
@@ -101,7 +100,7 @@ else:
             if cleanup:
                 cleanup_files.append(script_name)
 
-
+            #Set up script to test for GPU on execute node
             run_file = """#!/bin/bash
 set -e
 
@@ -126,7 +125,8 @@ python3 {}
                 f.close()
             if cleanup:
                 cleanup_files.append(run_name)
-                
+
+            #Set up TF submit files    
             submit_file = """universe = vanilla
 
 log = _job_{}.log
@@ -140,8 +140,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = {},{},{}
 
-
-requirements = (CUDACapability == {})&&({} <= Target.CUDADriverVersion)
+require_gpus = (Capability == {}) && ({} <= DriverVersion)
 periodic_remove = (time() - QDate) > (24 * 3600)
 request_cpus = 1
 request_gpus = 1
@@ -166,11 +165,11 @@ queue 1""".format(job_tag,run_name,job_tag,job_tag,"http://proxy.chtc.wisc.edu/S
 
 
 
-
-
+##########################
+#PyTorch tests
+##########################
 for compute_capability in compute_capability_params:
     for cuda_lib_version in cuda_lib_params:
-        #tf_version = "2.6"
         for pt_version in pt_params:
             trial = [compute_capability,cuda_lib_version,pt_version]
             job_tag = "pt_"+trial[0]+"_"+trial[1]+"_"+trial[2]
@@ -180,7 +179,7 @@ for compute_capability in compute_capability_params:
             else:
                 cuda_lib_range = trial[1][0:-1]+"0"
                 
-                
+            #Set up conda env .yml for PT jobs    
             env_yml = """channels:
 - pytorch
 - defaults
@@ -196,7 +195,7 @@ dependencies:
             if cleanup:
                 cleanup_files.append(env_name)
 
-
+            #Set up PT test script to test for GPU on execute node
             test_script = """import torch
 cuda_available = torch.cuda.is_available()
 num_GPUs = torch.cuda.device_count()
@@ -215,7 +214,7 @@ else:
             if cleanup:
                 cleanup_files.append(script_name)    
 
-
+            #Set up PT run file
             run_file = """#!/bin/bash
 set -e
 
@@ -241,6 +240,7 @@ python3 {}
             if cleanup:
                 cleanup_files.append(run_name)    
                 
+            #Set up PT submit files
             submit_file = """universe = vanilla
 
 log = _job_{}.log
@@ -254,8 +254,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = {},{},{}
 
-
-requirements = (CUDACapability == {})&&({} <= Target.CUDADriverVersion)
+require_gpus = (Capability == {}) && ({} <= DriverVersion)
 periodic_remove = (time() - QDate) > (24 * 3600)
 request_cpus = 1
 request_gpus = 1
@@ -277,6 +276,7 @@ queue 1""".format(job_tag,run_name,job_tag,job_tag,"http://proxy.chtc.wisc.edu/S
             submits.append(submit_name)
 
 
+#Add files to cleanup if option is selected
 if cleanup:
     cleanup_files.append('A.dag*')
     cleanup_files.append('MY_DAG.*')
@@ -285,17 +285,19 @@ if cleanup:
     cleanup_files.append("cleanup.txt")
 
 
-
+#If cleanup is selected, write these files to be deleted by ENDING_SCRIPT.py
 if cleanup:
     with open('cleanup.txt','w') as myfile:
         for i in cleanup_files:
             myfile.write(i+'\n')
         myfile.close()
         
+#Set up DAG file for handling job submissions        
 with open("A.dag","w") as myfile:
     for i,n in enumerate(submits):
         myfile.write("JOB "+str(i)+" "+str(n)+"\n")
 
+#File that ENDING_SCRIPT.py uses to track/aggregate job info (necessary because jobs that time out won't give an output file)
 with open("SUBMITS.txt","w") as myfile:
     for i in submits:
         myfile.write(i+"\n")

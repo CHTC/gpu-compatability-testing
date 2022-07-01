@@ -187,7 +187,7 @@ request_disk = 40GB
 +WantGPULab = true
 +GPUJobLength = "short"
 
-queue 1""".format(job_tag,run_name,job_tag,job_tag,"Miniconda3-latest-Linux-x86_64.sh",env_name,script_name,compute_cap,cuda_lib_version)
+queue 1""".format(job_tag,run_name,job_tag,job_tag,"http://proxy.chtc.wisc.edu/SQUID/gpu-examples/Miniconda3-latest-Linux-x86_64.sh",env_name,script_name,compute_cap,cuda_lib_version)
         
 submit_name = 'submit_{}.sub'.format(job_tag)
 with open(submit_name, 'w') as f:

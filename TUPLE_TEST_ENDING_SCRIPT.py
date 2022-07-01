@@ -38,11 +38,11 @@ for i in submit:
                 failure = "GPU/Framework Comm Failure"
        
     if check_tag:
-        with open("test_results.txt", 'w') as f:
+        with open(job_tag+"_test_results.txt\n", 'w') as f:
             f.write("Test succeeded")
             f.close
     else:
-        with open("test_results.txt",'w') as f:
+        with open(job_tag+"_test_results.txt\n",'w') as f:
             f.write("Test failed: "+failure)
             f.close()
 if os.path.isfile('cleanup_tuple.txt'):

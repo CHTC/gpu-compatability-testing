@@ -18,4 +18,3 @@ request_memory = 4GB
 request_disk = 4GB
 
 queue 1
-(base) [jhiemstra@submit-1 Backfill_testing]$ 
